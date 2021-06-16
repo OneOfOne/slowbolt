@@ -33,6 +33,9 @@ type DB struct {
 }
 
 func (b *DB) timeItCtx(op string) func() {
+	if b.SlowDuration == -1 {
+		return func() {}
+	}
 	fn, file, line := oerrs.Caller(2).Location()
 	dur := b.SlowDuration
 	if dur == 0 {
