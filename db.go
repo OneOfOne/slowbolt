@@ -1,9 +1,9 @@
 package slowbolt
 
 import (
-	"context"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"go.etcd.io/bbolt"
@@ -41,19 +41,33 @@ func (b *DB) timeItCtx(op string) func() {
 	if dur == 0 {
 		dur = time.Minute
 	}
-
-	ctx, cfn := context.WithTimeout(context.Background(), dur)
+	path := filepath.Base(b.DB.Path())
+	start := time.Now()
+	timer := time.NewTimer(dur)
+	done := make(chan struct{})
 	go func() {
-		<-ctx.Done()
-		if ctx.Err() == context.DeadlineExceeded {
+		select {
+		case <-done:
+		case <-timer.C:
 			if b.OnSlow != nil {
 				b.OnSlow(op, fn, file, line)
 			} else {
-				log.Printf("[slowbolt] %s stuck, called by %s (%s:%d)", op, fn, file, line)
+				log.Printf("[slowbolt:%s] %s stuck, called by %s (%s:%d)", path, op, fn, file, line)
 			}
 		}
+
+		if !timer.Stop() {
+			<-timer.C
+		}
 	}()
-	return cfn
+	return func() {
+		close(done)
+		took := time.Since(start)
+		if took <= dur {
+			return
+		}
+		log.Printf("[slowbolt:%s] %s took %v, called by %s (%s:%d)", path, op, took, fn, file, line)
+	}
 }
 
 func (b *DB) Update(fn func(*Tx) error) error {
