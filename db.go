@@ -3,6 +3,7 @@ package slowbolt
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -59,7 +60,7 @@ func (b *DB) timeItCtx(op string) (func(), func()) {
 		fr = oerrs.Caller(2)
 
 		dur   = b.SlowDuration
-		path  = "x.db" // filepath.Base(b.DB.Path())
+		path  = filepath.Base(b.DB.Path())
 		start = time.Now()
 		last  string
 		held  time.Time
