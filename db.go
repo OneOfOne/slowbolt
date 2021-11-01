@@ -120,14 +120,14 @@ func (b *DB) Update(fn func(*Tx) error) error {
 	})
 }
 
-func (b *DB) View(fn func(*Tx) error) error {
-	if b.SlowDuration == -1 {
-		return b.DB.View(fn)
-	}
-	afn, cfn := b.timeItCtx("View")
-	defer cfn()
-	return b.DB.View(func(t *bbolt.Tx) error {
-		afn()
-		return fn(t)
-	})
-}
+// func (b *DB) View(fn func(*Tx) error) error {
+// 	if b.SlowDuration == -1 {
+// 		return b.DB.View(fn)
+// 	}
+// 	afn, cfn := b.timeItCtx("View")
+// 	defer cfn()
+// 	return b.DB.View(func(t *bbolt.Tx) error {
+// 		afn()
+// 		return fn(t)
+// 	})
+// }
