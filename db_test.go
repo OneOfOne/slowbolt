@@ -25,7 +25,7 @@ func slowTest(db *DB) {
 	afn, cfn := db.timeItCtx("Test")
 	defer cfn()
 	time.Sleep(time.Second * 1)
-	afn()
+	afn("one")
 	time.Sleep(time.Second * 4)
 }
 
@@ -33,6 +33,6 @@ func slowTest2(db *DB) {
 	afn, cfn := db.timeItCtx("Test2")
 	defer cfn()
 	time.Sleep(time.Second * 2)
-	afn()
+	afn("two")
 	time.Sleep(time.Second * 1)
 }
