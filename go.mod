@@ -1,9 +1,7 @@
 module go.oneofone.dev/slowbolt
 
-go 1.16
+go 1.18
 
-require (
-	go.etcd.io/bbolt v1.3.6
-	go.oneofone.dev/oerrs v1.0.5
-	golang.org/x/sys v0.0.0-20210820121016-41cdb8703e55 // indirect
-)
+require go.etcd.io/bbolt v1.3.7
+
+require golang.org/x/sys v0.6.0 // indirect

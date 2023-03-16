@@ -7,14 +7,16 @@ import (
 )
 
 func Test(t *testing.T) {
-	log.SetFlags(log.Lshortfile)
-	db := &DB{
-		SlowDuration: time.Second,
-		OnSlow: func(op, fn, file string, line int) {
-			t.Logf("%v %v %v:%v", op, fn, file, line)
-		},
+	db, err := Open(t.TempDir()+"/test.db", 0o600, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	db.SlowDuration = time.Second
+	db.OnSlow = func(op, fn, file string, line int) {
+		t.Log(op, fn, file, line)
 	}
 
+	log.SetFlags(log.Lshortfile)
 	slowTest(db)
 }
 
@@ -22,17 +24,23 @@ func slowTest(db *DB) {
 	go func() {
 		slowTest2(db)
 	}()
-	afn, cfn := db.timeItCtx("Test")
-	defer cfn()
-	time.Sleep(time.Second * 1)
-	afn("one")
-	time.Sleep(time.Second * 4)
+	db.Update(func(tx *Tx) error {
+		time.Sleep(time.Second * 2)
+		return nil
+	})
+	db.Update(func(tx *Tx) error {
+		time.Sleep(time.Second * 3)
+		return nil
+	})
 }
 
 func slowTest2(db *DB) {
-	afn, cfn := db.timeItCtx("Test2")
-	defer cfn()
-	time.Sleep(time.Second * 2)
-	afn("two")
-	time.Sleep(time.Second * 1)
+	db.Update(func(tx *Tx) error {
+		time.Sleep(time.Second * 1)
+		return nil
+	})
+	db.Update(func(tx *Tx) error {
+		time.Sleep(time.Second * 2)
+		return nil
+	})
 }
